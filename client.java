@@ -33,8 +33,9 @@ public class client {
             inStream = this.clientSocket.getInputStream();
 
         } catch (Exception e) {
-            // ADD EXCEPTION HANDLING
+            // EXCEPTION HANDLING
             System.out.println(e.getMessage());
+            e.printStackTrace();
         }
 
     }
@@ -92,11 +93,7 @@ public class client {
             int bytesToDownload = (int)filelengthStream.readObject();
 
             // Create a byte array of approrpriate size
-            int byteArrSize = 10;
-            if (bytesToDownload/100000 > 10) {
-                byteArrSize = bytesToDownload/100000;
-            }
-            byte[] byteArr = new byte[byteArrSize];
+            byte[] byteArr = new byte[10];
             int bytesRead = 0;
 
             // Create file output stream to write the data into file
@@ -107,6 +104,7 @@ public class client {
             bos.write(byteArr);
 
             while (bytesRead < bytesToDownload) {
+                bos.flush();
                 bytesRead += inStream.read(byteArr);
                 bos.write(byteArr);
                 float perc = (float) bytesRead / (float) bytesToDownload * (float) 100.0;
@@ -121,10 +119,12 @@ public class client {
             filelengthStream.close();
             outStream.close();
             inStream.close();
+            // outStream.close();
 
         }
         catch(Exception e) {
-            // ADD EXCEPTION HANDLING
+            // EXCEPTION HANDLING
+            e.printStackTrace();
             System.out.println(e.getMessage());
         }
 
@@ -150,11 +150,11 @@ public class client {
             System.out.println("File uploading to server");
 
             // Create the byte array with appropriate size
-            int byteArrSize = 10;
-            if (bytesToUpload/100000 > 10) {
-                byteArrSize = bytesToUpload/100000;
-            }
-            byte[] byteArr = new byte[byteArrSize];
+//            int byteArrSize = 10;
+//            if (bytesToUpload/100000 > 10) {
+//                byteArrSize = bytesToUpload/100000;
+//            }
+            byte[] byteArr = new byte[10];
             FileInputStream fis = new FileInputStream(file);
             BufferedInputStream bis = new BufferedInputStream(fis);
 
@@ -165,27 +165,29 @@ public class client {
 
             // Continue to read the file
             while (bytesSent < (int)file.length()) {
+                outStream.flush();
                 bytesSent += bis.read(byteArr);
                 outStream.write(byteArr);
-                float perc = (float)bytesSent / (float) bytesToUpload * (float)100.0;
 
+                float perc = (float)bytesSent / (float) bytesToUpload * (float)100.0;
                 System.out.print("\r");
                 System.out.print("Uploading ... " + ((int)perc) + "%");
             }
 
             System.out.println("\nFile Uploaded");
 
-            bis.close();
             outStream.flush();
+
+            bis.close();
             outStream.close();
 
         }
         catch (FileNotFoundException e) {
-            // ADD EXCEPTION HANDLING
-            System.out.println(e.getMessage());
+            // EXCEPTION HANDLING
+            e.printStackTrace();
         } catch (IOException e) {
-            // ADD EXCEPTION HANDLING
-            System.out.println(e.getMessage());
+            // EXCEPTION HANDLING
+            e.printStackTrace();
         }
         finally {
 
@@ -214,12 +216,12 @@ public class client {
             inFromServer.close();
 
         } catch (IOException e) {
-            // ADD EXCEPTION HANDLING
-            System.out.println(e.getMessage());
+            // EXCEPTION HANDLING
+            e.printStackTrace();
         }
         catch (ClassNotFoundException e) {
-            // ADD EXCEPTION HANDLING
-            System.out.println(e.getMessage());
+            // EXCEPTION HANDLING
+            e.printStackTrace();
         }
 
     }
@@ -240,8 +242,8 @@ public class client {
             this.outStream.close();
 
         } catch (IOException e) {
-            // ADD EXCEPTION HANDLING
-            System.out.println(e.getMessage());
+            // EXCEPTION HANDLING
+            e.printStackTrace();
         }
     }
 
@@ -312,8 +314,8 @@ public class client {
                         this.inStream.close();
                         this.outStream.close();
                     } catch (IOException e) {
-                        // ADD EXCEPTION HANDLING
-                        System.out.println(e.getMessage());
+                        // EXCEPTION HANDLING
+                        e.printStackTrace();
                     }
                     break;
                 }
@@ -323,8 +325,8 @@ public class client {
                 this.inStream.close();
                 this.outStream.close();
             } catch (IOException e) {
-                // ADD EXCEPTION HANDLING
-                System.out.println(e.getMessage());
+                // EXCEPTION HANDLING
+                e.printStackTrace();
             }
         }
 
@@ -349,8 +351,8 @@ public class client {
             client.processCommand(args);
 
         } catch (Exception e) {
-            // ADD EXCEPTION HANDLING
-            System.out.println(e.getMessage());
+            // EXCEPTION HANDLING
+            e.printStackTrace();
         }
     }
 

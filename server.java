@@ -4,6 +4,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /*
@@ -21,8 +23,8 @@ public class server {
     private OutputStream outStream;
     private InputStream inStream;
 
-    private static String prevFilename = null;
-    private static int prevFileBytesSent = 0;
+    private static int numThreadsRunning = 0;
+    private static boolean isShutDownCalled = false;
 
 
     /*
@@ -35,6 +37,8 @@ public class server {
             this.inStream = clSocket.getInputStream();
 
         } catch (Exception e) {
+            // EXCEPTION HANDLING
+            e.printStackTrace();
             System.out.println(e.getMessage());
         }
     }
@@ -45,6 +49,7 @@ public class server {
     private void receiveClientFile(String filePath) {
         try {
 
+            // Send the size of file to client
             ObjectInputStream bytesToRecieveStream = new ObjectInputStream(inStream);
             int numBytes = (int)bytesToRecieveStream.readObject();
 
@@ -53,32 +58,27 @@ public class server {
             filePath = s + filePath;
 
             int bytesRead = 0;
-            int byteArrSize = 10;
-            if (numBytes/100000 > 10) {
-                byteArrSize = numBytes/100000;
-            }
-            byte[] bytesArray = new byte[byteArrSize];
-//            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            byte[] bytesArray = new byte[10];
             FileOutputStream fos = new FileOutputStream(filePath);
             BufferedOutputStream bos = new BufferedOutputStream(fos);
 
+            // Read file data bytes from client
             bytesRead = inStream.read(bytesArray, 0, bytesArray.length);
             bos.write(bytesArray);
 
             while(bytesRead < numBytes) {
+                bos.flush();
                 bytesRead += inStream.read(bytesArray);
                 bos.write(bytesArray);
             }
 
-//            bos.write(baos.toByteArray());
-
-//            baos.flush();
             bos.flush();
             inStream.close();
             outStream.close();
 
         } catch (Exception e) {
-            // ADD EXCEPTION HANDLING
+            // EXCEPTION HANDLING
+            e.printStackTrace();
             System.out.println(e.getMessage());
         }
         finally {
@@ -91,7 +91,7 @@ public class server {
      */
     private void sendFileToClient(String filePath) {
 
-        int bytesSent =  0;
+//        int bytesSent =  0;
 
         try {
 
@@ -109,36 +109,26 @@ public class server {
             // Read file is success, send to client
             sendErrorToClient(0, null);
 
-            // Check for the previously uploaded file
-//            if (server.prevFilename != null) {
-//                if (filePath.compareTo(server.prevFilename) == 0) {
-//                    bytesSent = server.prevFileBytesSent;
-//                }
-//            }
-
             // Create the byte array with appropriate size
-            int byteArrSize = 10;
-            if (numBytes/100000 > 10) {
-                byteArrSize = numBytes/100000;
-            }
-            byte[] byteArr = new byte[byteArrSize];
+            byte[] byteArr = new byte[10];
 
             // Send file length to client
             ObjectOutputStream filelengthStream = new ObjectOutputStream(outStream);
             filelengthStream.writeObject(numBytes);
 
             // Send file data to client
-            int sent = bis.read(byteArr, bytesSent, byteArr.length);
-            outStream.write(byteArr, bytesSent, byteArr.length);
-            bytesSent = sent;
+            int bytesSent = bis.read(byteArr, 0, byteArr.length);
+            outStream.write(byteArr, 0, byteArr.length);
 
             // Continue to read the file
             while (bytesSent < numBytes) {
+                outStream.flush();
                 bytesSent += bis.read(byteArr);
                 outStream.write(byteArr);
             }
 
             outStream.flush();
+
             bis.close();
             inStream.close();
         }
@@ -152,8 +142,7 @@ public class server {
             print(e.getMessage());
         }
         finally {
-//            server.prevFilename = filePath;
-//            server.prevFileBytesSent = bytesSent;
+
         }
 
     }
@@ -184,7 +173,8 @@ public class server {
                 sendErrorToClient(210, "Directory already exists");
             }
         } catch (Exception e) {
-            // ADD EXCEPTION HANDLING
+            // EXCEPTION HANDLING
+            e.printStackTrace();
             System.out.println(e.getMessage());
         }
     }
@@ -203,21 +193,27 @@ public class server {
             File theDir = new File(dirPath);
 
             if (theDir.exists()) {
-                theDir.delete();
+                if (theDir.listFiles().length > 0) {
+                    sendErrorToClient(203, "Directory is not empty");
+                }
+                else {
+                    theDir.delete();
 
-                // Send success code to client
-                sendErrorToClient(0, null);
+                    // Send success code to client
+                    sendErrorToClient(0, null);
 
-                ObjectOutputStream outToClient1 = new ObjectOutputStream(outStream);
-                outToClient1.writeObject("successfully deleted directory: " + dirPath);
+                    ObjectOutputStream outToClient1 = new ObjectOutputStream(outStream);
+                    outToClient1.writeObject("successfully deleted directory: " + dirPath);
 
-                outToClient1.flush();
-                outToClient1.close();
+                    outToClient1.flush();
+                    outToClient1.close();
+                }
             } else {
                 sendErrorToClient(202, "Directory not found");
             }
         } catch (Exception e) {
-            // ADD EXCEPTION HANDLING
+            // EXCEPTION HANDLING
+            e.printStackTrace();
             System.out.println(e.getMessage());
         }
 
@@ -252,7 +248,8 @@ public class server {
                 sendErrorToClient(201, "File not found");
             }
         } catch (Exception e) {
-            // ADD EXCEPTION HANDLING
+            // EXCEPTION HANDLING
+            e.printStackTrace();
             System.out.println(e.getMessage());
         }
 
@@ -299,8 +296,8 @@ public class server {
 
 
         } catch(IOException e) {
-
-            // ADD EXCEPTION HANDLING
+            // EXCEPTION HANDLING
+            e.printStackTrace();
             System.out.println(e.getMessage());
         }
     }
@@ -315,6 +312,8 @@ public class server {
             this.outStream.close();
 
         } catch (IOException e) {
+            // EXCEPTION HANDLING
+            e.printStackTrace();
             sendErrorToClient(215, "Error shutting down the server..");
         }
     }
@@ -355,7 +354,16 @@ public class server {
                 case "shutdown": {
                     try {
                         // CLOSE THE SERVER
-                        this.srvSocket.close();
+                        server.isShutDownCalled = true;
+                        while(true) {
+                            if (server.numThreadsRunning > 0) {
+                                wait();
+                            } else {
+                                this.srvSocket.close();
+                                server.isShutDownCalled = false;
+                                break;
+                            }
+                        }
                     } catch (IOException e) {
 
                         // ADD EXCEPTION HANDLING
@@ -384,6 +392,8 @@ public class server {
             objInpStream.close();
         }
         catch (Exception e) {
+            // EXCEPTION HANDLING
+            e.printStackTrace();
             System.out.println(e.getMessage());
         }
     }
@@ -407,7 +417,8 @@ public class server {
             }
         }
         catch (Exception e){
-            // Exception handelling
+            // EXCEPTION HANDLING
+            e.printStackTrace();
         }
     }
 
@@ -423,15 +434,20 @@ public class server {
                     server sktServer = new server(clientSocket, srvSocket);
                     sktServer.processClientRequest();
                     clientSocket.close();
+
+                    server.numThreadsRunning--;
+                    notifyAll();
                 }
                 catch (IOException e) {
-                    // ERROR HANDELING
+                    // EXCEPTION HANDLING
+                    e.printStackTrace();
                     System.out.println(e.getMessage());
                 }
             }
         };
 
         Thread srvThread = new Thread(srvRunnable);
+        server.numThreadsRunning++;
         srvThread.start();
     }
 
@@ -441,14 +457,15 @@ public class server {
     public static void start(ServerSocket srvSocket) {
 
         // Loop to accept all incoming client requests
-        while (!srvSocket.isClosed()) {
+        while (!srvSocket.isClosed() && !server.isShutDownCalled) {
             try {
                 // Accept incoming request
                 Socket clientSocket = srvSocket.accept();
                 startConnectionThread(clientSocket, srvSocket);
 
             } catch (Exception e) {
-                // ADD EXCEPTION HANDLING
+                // EXCEPTION HANDLING
+                e.printStackTrace();
                 System.out.println(e.getMessage());
             }
         }
@@ -476,7 +493,8 @@ public class server {
             }
         }
         catch (Exception e) {
-
+            // EXCEPTION HANDLING
+            e.printStackTrace();
         }
         finally {
 
