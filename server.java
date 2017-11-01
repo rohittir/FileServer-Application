@@ -44,6 +44,37 @@ public class server {
     }
 
     /*
+     * increament/decreament the thread count
+     */
+    public static synchronized void increamentRunningThreadsCount(int num) {
+        server.numThreadsRunning = numThreadsRunning + num;
+    }
+
+    /*
+     * get current thread counts
+     */
+    public static synchronized int getRunningThreadsCount() {
+        return server.numThreadsRunning;
+    }
+
+    /*
+     * get current thread counts
+     */
+    public static synchronized boolean getIsShutDownCalled() {
+        return server.isShutDownCalled;
+    }
+
+
+    /*
+     * get current thread counts
+     */
+    public static synchronized void setIsShutDownCalled(boolean isShutDown) {
+        server.isShutDownCalled = isShutDown;
+    }
+
+
+
+    /*
      * Receives the file uploaded by client
      */
     private void receiveClientFile(String filePath) {
@@ -57,22 +88,10 @@ public class server {
             String s = currentRelativePath.toAbsolutePath().toString();
             filePath = s + filePath;
 
-            int bytesRead = 0;
-            byte[] bytesArray = new byte[10];
-            FileOutputStream fos = new FileOutputStream(filePath);
-            BufferedOutputStream bos = new BufferedOutputStream(fos);
+            // Read the bytes from client and write into the file
+            readClientBytesAndWriteFile(filePath, 0, numBytes);
 
-            // Read file data bytes from client
-            bytesRead = inStream.read(bytesArray, 0, bytesArray.length);
-            bos.write(bytesArray);
-
-            while(bytesRead < numBytes) {
-                bos.flush();
-                bytesRead += inStream.read(bytesArray);
-                bos.write(bytesArray);
-            }
-
-            bos.flush();
+            bytesToRecieveStream.close();
             inStream.close();
             outStream.close();
 
@@ -85,6 +104,71 @@ public class server {
 
         }
     }
+
+    /*
+     * Read the client outstream bytes and write to the file
+     */
+
+    private void readClientBytesAndWriteFile(String serverFile, int bytesRead, int bytesToRecieve) {
+        try {
+            // Create a byte array of approrpriate size
+            byte[] byteArr = new byte[1024];
+
+            // Create file output stream to write the data into file
+            FileOutputStream fos = new FileOutputStream(serverFile);
+            BufferedOutputStream bos = new BufferedOutputStream(fos);
+
+            bytesRead = inStream.read(byteArr, bytesRead, byteArr.length);
+            bos.write(byteArr);
+            bos.flush();
+
+            while (bytesRead < bytesToRecieve) {
+                bytesRead += inStream.read(byteArr);
+                bos.write(byteArr);
+                bos.flush();
+            }
+
+        } catch (IOException e) {
+            //EXCEPTION
+            e.printStackTrace();
+//            System.out.println("Resuming upload ");
+//            if (bytesRead < bytesToRecieve) {
+//                readClientBytesAndWriteFile(clientFile, bytesRead, bytesToRecieve);
+//            }
+
+        }
+    }
+
+    private void readFileAndSendBytesToClient(BufferedInputStream buffStream, int startByteCount, int totalBytesCount) {
+        int bytesSent = 0;
+        try {
+            // Create the byte array with appropriate size
+            byte[] byteArr = new byte[1024];
+
+            // Send file data to client
+            bytesSent = buffStream.read(byteArr, startByteCount, byteArr.length);
+            outStream.write(byteArr, 0, byteArr.length);
+            outStream.flush();
+
+            // Continue to read the file
+            while (bytesSent+startByteCount < totalBytesCount) {
+                outStream.flush();
+                bytesSent += buffStream.read(byteArr);
+                outStream.write(byteArr);
+            }
+
+        } catch (IOException e) {
+
+            // Exception handelling
+//            if (bytesSent+startByteCount < totalBytesCount) {
+//                System.out.println("Resuming download...");
+//                readFileAndSendBytesToClient(buffStream, bytesSent, totalBytesCount);
+//            }
+            e.printStackTrace();
+
+        }
+    }
+
 
     /*
      * Sends the file requested by client (download)
@@ -109,25 +193,30 @@ public class server {
             // Read file is success, send to client
             sendErrorToClient(0, null);
 
-            // Create the byte array with appropriate size
-            byte[] byteArr = new byte[10];
-
             // Send file length to client
             ObjectOutputStream filelengthStream = new ObjectOutputStream(outStream);
             filelengthStream.writeObject(numBytes);
 
-            // Send file data to client
-            int bytesSent = bis.read(byteArr, 0, byteArr.length);
-            outStream.write(byteArr, 0, byteArr.length);
+//            ObjectInputStream filePointer = new ObjectInputStream(inStream);
+//            int filePos = (int)filePointer.readObject();
 
-            // Continue to read the file
-            while (bytesSent < numBytes) {
-                outStream.flush();
-                bytesSent += bis.read(byteArr);
-                outStream.write(byteArr);
-            }
+//            // Create the byte array with appropriate size
+//            byte[] byteArr = new byte[1024];
+//
+//            // Send file data to client
+//            int bytesSent = bis.read(byteArr, 0, byteArr.length);
+//            outStream.write(byteArr, 0, byteArr.length);
+//
+//            // Continue to read the file
+//            while (bytesSent < numBytes) {
+//                outStream.flush();
+//                bytesSent += bis.read(byteArr);
+//                outStream.write(byteArr);
+//            }
+//
+//            outStream.flush();
 
-            outStream.flush();
+            readFileAndSendBytesToClient(bis, 0, numBytes);
 
             bis.close();
             inStream.close();
@@ -137,7 +226,7 @@ public class server {
             e.printStackTrace();
             sendErrorToClient(201, "File not found");
         }
-        catch (IOException e) {
+        catch (Exception e) {
             e.printStackTrace();
             print(e.getMessage());
         }
@@ -152,7 +241,7 @@ public class server {
     */
     private void createDir(String dirPath) {
         try {
-            if(0 == dirPath.indexOf("/")) {
+            if(0 == dirPath.indexOf("/") || 0 == dirPath.indexOf("\\")) {
                 dirPath = dirPath.substring(1);
             }
 
@@ -186,7 +275,7 @@ public class server {
     private void removeDir(String dirPath) {
         try {
 
-            if(0 == dirPath.indexOf("/")) {
+            if(0 == dirPath.indexOf("/") || 0 == dirPath.indexOf("\\")) {
                 dirPath = dirPath.substring(1);
             }
 
@@ -226,7 +315,7 @@ public class server {
     private void removeFile(String filePath) {
         try {
 
-            if(0 == filePath.indexOf("/")) {
+            if(0 == filePath.indexOf("/") || 0 == filePath.indexOf("\\")) {
                 filePath = filePath.substring(1);
             }
 
@@ -240,7 +329,7 @@ public class server {
 
 
                 ObjectOutputStream outToClient1 = new ObjectOutputStream(outStream);
-                outToClient1.writeObject("successfully deleted directory: " + filePath);
+                outToClient1.writeObject("successfully deleted directory: /" + filePath);
 
                 outToClient1.flush();
                 outToClient1.close();
@@ -263,7 +352,7 @@ public class server {
 
         try {
 
-            if(0 == dirPath.indexOf("/")) {
+            if(0 == dirPath.indexOf("/") || 0 == dirPath.indexOf("\\")) {
                 dirPath = dirPath.substring(1);
             }
 
@@ -275,8 +364,13 @@ public class server {
                 sendErrorToClient(0, null);
 
                 String[] files = new File(dirPath).list();
-                Path currentRelativePath = Paths.get("");
-                fileNames = fileNames + "Root Directory: " + currentRelativePath.toAbsolutePath().toString();
+//                Path currentRelativePath = Paths.get("");
+//                fileNames = fileNames + "Root Directory: " + currentRelativePath.toAbsolutePath().toString();
+                fileNames = "Current Directory: /" + dirPath + "/";
+                if (dirPath.compareTo("./") == 0) {
+                    fileNames = "Current Directory: /";
+                }
+
 
                 for (String file : files) {
                     fileNames = fileNames + "\n" + file;
@@ -293,6 +387,7 @@ public class server {
 
             outToClient1.flush();
             outToClient1.close();
+            inStream.close();
 
 
         } catch(IOException e) {
@@ -307,14 +402,29 @@ public class server {
      */
     private void shutdownServer() {
         try {
-            this.srvSocket.close();
-            this.inStream.close();
-            this.outStream.close();
+            // CLOSE THE SERVER
+            server.setIsShutDownCalled(true);
+
+            ObjectOutputStream msgToClient = new ObjectOutputStream(outStream);
+
+            if (server.getRunningThreadsCount() > 1) {
+                msgToClient.writeObject("Server is serving other clients. Server will not accept any new commands now and will shut down once all services are completed. ");
+                while(true) {
+                    if (server.getRunningThreadsCount() <= 1) {
+                        this.srvSocket.close();
+                        server.setIsShutDownCalled(false);
+                        break;
+                    }
+                }
+            } else {
+                msgToClient.writeObject("Server has been closed");
+                msgToClient.close();
+                this.srvSocket.close();
+            }
 
         } catch (IOException e) {
             // EXCEPTION HANDLING
             e.printStackTrace();
-            sendErrorToClient(215, "Error shutting down the server..");
         }
     }
 
@@ -352,23 +462,7 @@ public class server {
                     break;
                 }
                 case "shutdown": {
-                    try {
-                        // CLOSE THE SERVER
-                        server.isShutDownCalled = true;
-                        while(true) {
-                            if (server.numThreadsRunning > 0) {
-                                wait();
-                            } else {
-                                this.srvSocket.close();
-                                server.isShutDownCalled = false;
-                                break;
-                            }
-                        }
-                    } catch (IOException e) {
-
-                        // ADD EXCEPTION HANDLING
-                        System.out.println(e.getMessage());
-                    }
+                    this.shutdownServer();
                     break;
                 }
                 case "mkdir": {
@@ -390,6 +484,8 @@ public class server {
             }
 
             objInpStream.close();
+            if (inStream != null) inStream.close();
+            if (outStream != null) outStream.close();
         }
         catch (Exception e) {
             // EXCEPTION HANDLING
@@ -431,25 +527,26 @@ public class server {
             @Override
             public void run() {
                 try {
+                    increamentRunningThreadsCount(1);
+
                     server sktServer = new server(clientSocket, srvSocket);
                     sktServer.processClientRequest();
                     clientSocket.close();
-
-                    server.numThreadsRunning--;
-                    notifyAll();
                 }
                 catch (IOException e) {
                     // EXCEPTION HANDLING
                     e.printStackTrace();
                     System.out.println(e.getMessage());
+                } finally {
+                    increamentRunningThreadsCount(-1);
                 }
             }
         };
 
         Thread srvThread = new Thread(srvRunnable);
-        server.numThreadsRunning++;
         srvThread.start();
     }
+
 
     /*
      * Start the server
@@ -457,16 +554,19 @@ public class server {
     public static void start(ServerSocket srvSocket) {
 
         // Loop to accept all incoming client requests
-        while (!srvSocket.isClosed() && !server.isShutDownCalled) {
+        while (!srvSocket.isClosed() && !server.getIsShutDownCalled()) {
             try {
                 // Accept incoming request
                 Socket clientSocket = srvSocket.accept();
                 startConnectionThread(clientSocket, srvSocket);
 
-            } catch (Exception e) {
+            } catch (IOException e) {
                 // EXCEPTION HANDLING
-                e.printStackTrace();
-                System.out.println(e.getMessage());
+                if (srvSocket.isClosed()) {
+                    System.out.println("Server has been closed");
+                } else {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -478,6 +578,7 @@ public class server {
     public static void main(String[] args) {
 
         try {
+
             if (args.length < 2) {
                 System.out.println("Wrong command. Use the command \"start <port>\" to start the server.");
                 return;

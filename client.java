@@ -16,9 +16,9 @@ public class client {
 
     // INSTANCE VARIABLES
 
-    private Socket clientSocket;
-    private OutputStream outStream;
-    private InputStream inStream;
+    private Socket clientSocket = null;
+    private OutputStream outStream = null;
+    private InputStream inStream = null;
 
 
     /*
@@ -34,8 +34,8 @@ public class client {
 
         } catch (Exception e) {
             // EXCEPTION HANDLING
-            System.out.println(e.getMessage());
-            e.printStackTrace();
+            System.out.println("Connection error. Please check if the server is running.");
+//            e.printStackTrace();
         }
 
     }
@@ -92,34 +92,20 @@ public class client {
             ObjectInputStream filelengthStream = new ObjectInputStream(inStream);
             int bytesToDownload = (int)filelengthStream.readObject();
 
-            // Create a byte array of approrpriate size
-            byte[] byteArr = new byte[10];
+//            File file1 = new File(clientFile);
             int bytesRead = 0;
+//            if (file1.exists()) {
+//                bytesRead = (int)file1.length();
+//            }
 
-            // Create file output stream to write the data into file
-            FileOutputStream fos = new FileOutputStream(clientFile);
-            BufferedOutputStream bos = new BufferedOutputStream(fos);
+//            dataToServer.writeObject((int)bytesRead);
+//            System.out.println(bytesRead);
 
-            bytesRead = inStream.read(byteArr, 0, byteArr.length);
-            bos.write(byteArr);
-
-            while (bytesRead < bytesToDownload) {
-                bos.flush();
-                bytesRead += inStream.read(byteArr);
-                bos.write(byteArr);
-                float perc = (float) bytesRead / (float) bytesToDownload * (float) 100.0;
-                System.out.print("\r");
-                System.out.print("Downloading ... " + ((int) perc) + "%");
-            }
-            System.out.println("\nFile Downloaded");
-
-            bos.flush();
+            // Read the bytes from Server and write to the file
+            readServerBytesAndWriteFile(clientFile, bytesRead, bytesToDownload);
 
             dataToServer.close();
             filelengthStream.close();
-            outStream.close();
-            inStream.close();
-            // outStream.close();
 
         }
         catch(Exception e) {
@@ -128,6 +114,52 @@ public class client {
             System.out.println(e.getMessage());
         }
 
+    }
+
+    /*
+     * Read the server outstream bytes and write to the file
+     */
+
+    private void readServerBytesAndWriteFile(String clientFile, int bytesRead, int bytesToDownload) {
+        try {
+            // Create a byte array of approrpriate size
+            byte[] byteArr = new byte[1024];
+
+            // Create file output stream to write the data into file
+            FileOutputStream fos = null;
+            if (bytesRead == 0) {
+                 fos = new FileOutputStream(clientFile);
+            } else {
+                fos = new FileOutputStream(clientFile, true);
+            }
+
+            BufferedOutputStream bos = new BufferedOutputStream(fos);
+
+            bytesRead += inStream.read(byteArr, 0, byteArr.length);
+            bos.write(byteArr);
+            bos.flush();
+
+            while (bytesRead < bytesToDownload) {
+                bytesRead += inStream.read(byteArr);
+                bos.write(byteArr);
+                bos.flush();
+
+                float perc = (float) bytesRead / (float) bytesToDownload * (float) 100.0;
+                System.out.print("\r");
+                System.out.print("Downloading ... " + ((int) perc) + "%");
+
+            }
+            System.out.println("\nFile Downloaded");
+
+        } catch (IOException e) {
+            //EXCEPTION
+            e.printStackTrace();
+//            if (bytesRead < bytesToDownload) {
+//                System.out.println("Resuming download ");
+//                readServerBytesAndWriteFile(clientFile, bytesRead, bytesToDownload);
+//            }
+
+        }
     }
 
     /*
@@ -150,24 +182,21 @@ public class client {
             System.out.println("File uploading to server");
 
             // Create the byte array with appropriate size
-//            int byteArrSize = 10;
-//            if (bytesToUpload/100000 > 10) {
-//                byteArrSize = bytesToUpload/100000;
-//            }
-            byte[] byteArr = new byte[10];
+            byte[] byteArr = new byte[1024];
             FileInputStream fis = new FileInputStream(file);
             BufferedInputStream bis = new BufferedInputStream(fis);
 
             // Read the file into byte array
             int bytesSent = bis.read(byteArr, 0, byteArr.length);
             outStream.write(byteArr, 0, byteArr.length);
+            outStream.flush();
             System.out.print("Uploading ... 0%");
 
             // Continue to read the file
             while (bytesSent < (int)file.length()) {
-                outStream.flush();
                 bytesSent += bis.read(byteArr);
                 outStream.write(byteArr);
+                outStream.flush();
 
                 float perc = (float)bytesSent / (float) bytesToUpload * (float)100.0;
                 System.out.print("\r");
@@ -175,8 +204,6 @@ public class client {
             }
 
             System.out.println("\nFile Uploaded");
-
-            outStream.flush();
 
             bis.close();
             outStream.close();
@@ -194,6 +221,8 @@ public class client {
         }
 
     }
+
+
 
     /*
      * Sends a string request to server and recieved a string reply from server
@@ -232,16 +261,16 @@ public class client {
             dataToServer.writeObject(command);
             dataToServer.flush();
 
-            // check for server error
-            if(checkServerError())
-                return;
+            // check for server message
+            ObjectInputStream dataFromServer = new ObjectInputStream(inStream);
+            String msg = (String) dataFromServer.readObject();
+            System.out.println(msg);
 
-            System.out.println("Server has been closed");
-
+            dataFromServer.close();
             this.inStream.close();
             this.outStream.close();
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             // EXCEPTION HANDLING
             e.printStackTrace();
         }
@@ -346,9 +375,10 @@ public class client {
                 System.out.println("Env variable <PA1_SERVER> is not valid");
                 return;
             }
-            client client = new client(hostnPort[0], Integer.parseInt(hostnPort[1]));
-
-            client.processCommand(args);
+            client clientObj = new client(hostnPort[0], Integer.parseInt(hostnPort[1]));
+            if (clientObj.outStream != null && clientObj.inStream != null) {
+                clientObj.processCommand(args);
+            }
 
         } catch (Exception e) {
             // EXCEPTION HANDLING
