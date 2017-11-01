@@ -1,20 +1,26 @@
-# Socket_FileServer
+# Java Socket FileServer
 
 <b>This is the program for file server developed using Java Sockets.</b>
 
-To start the server, run the following command - 
-java -cp pa1.jar server start <portnumber>
+<p>To start the server, run the following command - </p>
+<p>java -cp pa1.jar server start <portnumber></p>
 
-<b>To run the client</b>, first youe need to set the enviornment variable named PA1_SERVER=<hostname:port>
+<b>To run the client</b>, first you need to set the enviornment variable named PA1_SERVER=<hostname:port>
+
+<br>
 
 <b>Following are the different commands supported by the client.</b>
-java -cp pa1.jar client upload <path_on_client> </path/filename/on/server>
-java -cp pa1.jar client download </path/existing_filename/on/server> <path_on_client>
-java -cp pa1.jar client dir </path/existing_directory/on/server>
-java -cp pa1.jar client mkdir </path/new_directory/on/server>
-java -cp pa1.jar client rmdir </path/existing_directory/on/server>
-java -cp pa1.jar client rm </path/existing_filename/on/server>
-java -cp pa1.jar client shutdown
+<p>java -cp pa1.jar client upload <path_on_client> </path/filename/on/server></p>
+<p>java -cp pa1.jar client download </path/existing_filename/on/server> <path_on_client></p>
+<p>java -cp pa1.jar client dir </path/existing_directory/on/server></p>
+<p>java -cp pa1.jar client mkdir </path/new_directory/on/server></p>
+<p>java -cp pa1.jar client rmdir </path/existing_directory/on/server></p>
+<p>java -cp pa1.jar client rm </path/existing_filename/on/server></p>
+<p>java -cp pa1.jar client shutdown</p>
 
+<br>
 
-Multiple clients can talk to the server at the same time. 
+<p>Multiple clients can talk to the server at the same time. </p>
+
+<p> The server's root directory is the working directory where the server has been sarted and all the files are stored on that root folder.</p>
+<p> It is recommended to use the server file path as /folder/file.ext and not the absolute path (if running on the same system and you knoe the absolute location), when using the commands for upload/download on the client </p>
