@@ -11,7 +11,7 @@
 
 <b>Following are the different commands supported by the client.</b>
 <p>java -cp pa1.jar client upload path_on_client /path/filename/on/server</p>
-<p>java -cp pa1.jar client download /path/existing_filename/on/server> <path_on_client></p>
+<p>java -cp pa1.jar client download /path/existing_filename/on/server path_on_client</p>
 <p>java -cp pa1.jar client dir /path/existing_directory/on/server </p>
 <p>java -cp pa1.jar client mkdir /path/new_directory/on/server</p>
 <p>java -cp pa1.jar client rmdir /path/existing_directory/on/server</p>

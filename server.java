@@ -130,6 +130,7 @@ public class server {
 
         } catch (IOException e) {
             //EXCEPTION
+            System.out.println(e.getMessage());
             e.printStackTrace();
 //            System.out.println("Resuming upload ");
 //            if (bytesRead < bytesToRecieve) {
@@ -165,6 +166,7 @@ public class server {
 //                readFileAndSendBytesToClient(buffStream, bytesSent, totalBytesCount);
 //            }
             e.printStackTrace();
+            System.out.println(e.getMessage());
 
         }
     }
@@ -223,6 +225,7 @@ public class server {
         }
         catch (FileNotFoundException e) {
             // Error
+            System.out.println(e.getMessage());
             e.printStackTrace();
             sendErrorToClient(201, "File not found");
         }
@@ -424,6 +427,7 @@ public class server {
 
         } catch (IOException e) {
             // EXCEPTION HANDLING
+            System.out.println(e.getMessage());
             e.printStackTrace();
         }
     }
@@ -514,6 +518,7 @@ public class server {
         }
         catch (Exception e){
             // EXCEPTION HANDLING
+            System.out.println(e.getMessage());
             e.printStackTrace();
         }
     }
@@ -566,6 +571,7 @@ public class server {
                     System.out.println("Server has been closed");
                 } else {
                     e.printStackTrace();
+                    System.out.println(e.getMessage());
                 }
             }
         }
@@ -596,6 +602,7 @@ public class server {
         catch (Exception e) {
             // EXCEPTION HANDLING
             e.printStackTrace();
+            System.out.println(e.getMessage());
         }
         finally {
 

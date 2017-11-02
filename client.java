@@ -67,6 +67,7 @@ public class client {
         catch (Exception e) {
             // EXCEPTION HANDLING
             e.printStackTrace();
+            System.out.println(e.getMessage());
         }
 
         return false;
@@ -153,6 +154,7 @@ public class client {
 
         } catch (IOException e) {
             //EXCEPTION
+            System.out.println(e.getMessage());
             e.printStackTrace();
 //            if (bytesRead < bytesToDownload) {
 //                System.out.println("Resuming download ");
@@ -211,9 +213,11 @@ public class client {
         }
         catch (FileNotFoundException e) {
             // EXCEPTION HANDLING
+            System.out.println(e.getMessage());
             e.printStackTrace();
         } catch (IOException e) {
             // EXCEPTION HANDLING
+            System.out.println(e.getMessage());
             e.printStackTrace();
         }
         finally {
@@ -246,10 +250,12 @@ public class client {
 
         } catch (IOException e) {
             // EXCEPTION HANDLING
+            System.out.println(e.getMessage());
             e.printStackTrace();
         }
         catch (ClassNotFoundException e) {
             // EXCEPTION HANDLING
+            System.out.println(e.getMessage());
             e.printStackTrace();
         }
 
@@ -272,6 +278,7 @@ public class client {
 
         } catch (Exception e) {
             // EXCEPTION HANDLING
+            System.out.println(e.getMessage());
             e.printStackTrace();
         }
     }
@@ -344,6 +351,7 @@ public class client {
                         this.outStream.close();
                     } catch (IOException e) {
                         // EXCEPTION HANDLING
+                        System.out.println(e.getMessage());
                         e.printStackTrace();
                     }
                     break;
@@ -355,6 +363,7 @@ public class client {
                 this.outStream.close();
             } catch (IOException e) {
                 // EXCEPTION HANDLING
+                System.out.println(e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -382,6 +391,7 @@ public class client {
 
         } catch (Exception e) {
             // EXCEPTION HANDLING
+            System.out.println(e.getMessage());
             e.printStackTrace();
         }
     }
