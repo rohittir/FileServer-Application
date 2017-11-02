@@ -10,12 +10,12 @@
 <br>
 
 <b>Following are the different commands supported by the client.</b>
-<p>java -cp pa1.jar client upload <path_on_client> </path/filename/on/server></p>
-<p>java -cp pa1.jar client download </path/existing_filename/on/server> <path_on_client></p>
-<p>java -cp pa1.jar client dir </path/existing_directory/on/server></p>
-<p>java -cp pa1.jar client mkdir </path/new_directory/on/server></p>
-<p>java -cp pa1.jar client rmdir </path/existing_directory/on/server></p>
-<p>java -cp pa1.jar client rm </path/existing_filename/on/server></p>
+<p>java -cp pa1.jar client upload path_on_client /path/filename/on/server</p>
+<p>java -cp pa1.jar client download /path/existing_filename/on/server> <path_on_client></p>
+<p>java -cp pa1.jar client dir /path/existing_directory/on/server </p>
+<p>java -cp pa1.jar client mkdir /path/new_directory/on/server</p>
+<p>java -cp pa1.jar client rmdir /path/existing_directory/on/server</p>
+<p>java -cp pa1.jar client rm /path/existing_filename/on/server</p>
 <p>java -cp pa1.jar client shutdown</p>
 
 <br>
@@ -23,4 +23,4 @@
 <p>Multiple clients can talk to the server at the same time. </p>
 
 <p> The server's root directory is the working directory where the server has been sarted and all the files are stored on that root folder.</p>
-<p> It is recommended to use the server file path as /folder/file.ext and not the absolute path (if running on the same system and you knoe the absolute location), when using the commands for upload/download on the client </p>
+<p> It is recommended to use the server file path as /folder/file.ext and not the absolute path (when running on the same system and you know the absolute server path), when using the commands for upload/download on the client </p>
