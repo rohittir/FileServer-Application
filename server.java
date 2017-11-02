@@ -82,7 +82,13 @@ public class server {
 
             Path currentRelativePath = Paths.get("");
             String s = currentRelativePath.toAbsolutePath().toString();
-            filePath = s + filePath;
+
+            if(0 == filePath.indexOf("/") || 0 == filePath.indexOf("\\")) {
+                filePath = filePath.substring(1);
+            }
+
+            filePath = s + "/" + filePath;
+
 
             // Create file output stream to write the data into file
             FileOutputStream fos = new FileOutputStream(filePath);
@@ -191,7 +197,11 @@ public class server {
             // Get File path
             Path currentRelativePath = Paths.get("");
             String s = currentRelativePath.toAbsolutePath().toString();
-            filePath = s + filePath;
+
+            if(0 == filePath.indexOf("/") || 0 == filePath.indexOf("\\")) {
+                filePath = filePath.substring(1);
+            }
+            filePath = s + "/" + filePath;
 
             // Create and check for file existance
             File file = new File(filePath);
@@ -313,6 +323,12 @@ public class server {
             File theFile = new File(filePath);
 
             if (theFile.exists()) {
+                if (theFile.listFiles() != null) {
+                    if (theFile.listFiles().length > 0) {
+                        sendErrorToClient(201, "File not found");
+                        return;
+                    }
+                }
                 theFile.delete();
 
                 // Send success code to client
