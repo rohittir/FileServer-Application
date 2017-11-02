@@ -80,22 +80,32 @@ public class server {
     private void receiveClientFile(String filePath) {
         try {
 
-            // Send the size of file to client
-            ObjectInputStream bytesToRecieveStream = new ObjectInputStream(inStream);
-            int numBytes = (int)bytesToRecieveStream.readObject();
-
             Path currentRelativePath = Paths.get("");
             String s = currentRelativePath.toAbsolutePath().toString();
             filePath = s + filePath;
 
+            // Create file output stream to write the data into file
+            FileOutputStream fos = new FileOutputStream(filePath);
+            BufferedOutputStream bos = new BufferedOutputStream(fos);
+
+            sendErrorToClient(0, null);
+
+            // Send the size of file to client
+            ObjectInputStream bytesToRecieveStream = new ObjectInputStream(inStream);
+            int numBytes = (int)bytesToRecieveStream.readObject();
+
             // Read the bytes from client and write into the file
-            readClientBytesAndWriteFile(filePath, 0, numBytes);
+            readClientBytesAndWriteFile(bos, 0, numBytes);
 
             bytesToRecieveStream.close();
             inStream.close();
             outStream.close();
 
-        } catch (Exception e) {
+        } catch (FileNotFoundException e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+            sendErrorToClient(201, "File not found");
+        }catch (Exception e) {
             // EXCEPTION HANDLING
             e.printStackTrace();
             System.out.println(e.getMessage());
@@ -109,14 +119,10 @@ public class server {
      * Read the client outstream bytes and write to the file
      */
 
-    private void readClientBytesAndWriteFile(String serverFile, int bytesRead, int bytesToRecieve) {
+    private void readClientBytesAndWriteFile(BufferedOutputStream bos, int bytesRead, int bytesToRecieve) {
         try {
             // Create a byte array of approrpriate size
             byte[] byteArr = new byte[1024];
-
-            // Create file output stream to write the data into file
-            FileOutputStream fos = new FileOutputStream(serverFile);
-            BufferedOutputStream bos = new BufferedOutputStream(fos);
 
             bytesRead = inStream.read(byteArr, bytesRead, byteArr.length);
             bos.write(byteArr);
@@ -132,9 +138,9 @@ public class server {
             //EXCEPTION
             System.out.println(e.getMessage());
             e.printStackTrace();
-//            System.out.println("Resuming upload ");
 //            if (bytesRead < bytesToRecieve) {
-//                readClientBytesAndWriteFile(clientFile, bytesRead, bytesToRecieve);
+//                System.out.println("Resuming upload ");
+//                readClientBytesAndWriteFile(bos, bytesRead, bytesToRecieve);
 //            }
 
         }
@@ -161,12 +167,13 @@ public class server {
         } catch (IOException e) {
 
             // Exception handelling
-//            if (bytesSent+startByteCount < totalBytesCount) {
-//                System.out.println("Resuming download...");
-//                readFileAndSendBytesToClient(buffStream, bytesSent, totalBytesCount);
-//            }
             e.printStackTrace();
             System.out.println(e.getMessage());
+
+            if (bytesSent+startByteCount < totalBytesCount) {
+                System.out.println("Resuming download...");
+                readFileAndSendBytesToClient(buffStream, bytesSent, totalBytesCount);
+            }
 
         }
     }
@@ -198,25 +205,6 @@ public class server {
             // Send file length to client
             ObjectOutputStream filelengthStream = new ObjectOutputStream(outStream);
             filelengthStream.writeObject(numBytes);
-
-//            ObjectInputStream filePointer = new ObjectInputStream(inStream);
-//            int filePos = (int)filePointer.readObject();
-
-//            // Create the byte array with appropriate size
-//            byte[] byteArr = new byte[1024];
-//
-//            // Send file data to client
-//            int bytesSent = bis.read(byteArr, 0, byteArr.length);
-//            outStream.write(byteArr, 0, byteArr.length);
-//
-//            // Continue to read the file
-//            while (bytesSent < numBytes) {
-//                outStream.flush();
-//                bytesSent += bis.read(byteArr);
-//                outStream.write(byteArr);
-//            }
-//
-//            outStream.flush();
 
             readFileAndSendBytesToClient(bis, 0, numBytes);
 

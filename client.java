@@ -93,14 +93,7 @@ public class client {
             ObjectInputStream filelengthStream = new ObjectInputStream(inStream);
             int bytesToDownload = (int)filelengthStream.readObject();
 
-//            File file1 = new File(clientFile);
             int bytesRead = 0;
-//            if (file1.exists()) {
-//                bytesRead = (int)file1.length();
-//            }
-
-//            dataToServer.writeObject((int)bytesRead);
-//            System.out.println(bytesRead);
 
             // Read the bytes from Server and write to the file
             readServerBytesAndWriteFile(clientFile, bytesRead, bytesToDownload);
@@ -156,10 +149,10 @@ public class client {
             //EXCEPTION
             System.out.println(e.getMessage());
             e.printStackTrace();
-//            if (bytesRead < bytesToDownload) {
-//                System.out.println("Resuming download ");
-//                readServerBytesAndWriteFile(clientFile, bytesRead, bytesToDownload);
-//            }
+            if (bytesRead < bytesToDownload) {
+                System.out.println("Resuming download ");
+                readServerBytesAndWriteFile(clientFile, bytesRead, bytesToDownload);
+            }
 
         }
     }
@@ -173,6 +166,10 @@ public class client {
             // Send upload file name to server
             ObjectOutputStream dataToServer = new ObjectOutputStream(outStream);
             dataToServer.writeObject("upload: " + serverFile);
+
+            // check error
+            if (checkServerError())
+                return;
 
             // Read the client file
             File file = new File(clientFile);
