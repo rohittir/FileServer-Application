@@ -369,11 +369,10 @@ public class server {
                 String[] files = new File(dirPath).list();
 //                Path currentRelativePath = Paths.get("");
 //                fileNames = fileNames + "Root Directory: " + currentRelativePath.toAbsolutePath().toString();
-                fileNames = "Current Directory: /" + dirPath + "/";
-                if (dirPath.compareTo("./") == 0) {
-                    fileNames = "Current Directory: /";
-                }
-
+                fileNames = "Root Directory: /";
+//                if (dirPath.compareTo("./") == 0) {
+//                    fileNames = "Current Directory: /";
+//                }
 
                 for (String file : files) {
                     fileNames = fileNames + "\n" + file;
