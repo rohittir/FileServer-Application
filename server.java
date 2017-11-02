@@ -165,9 +165,9 @@ public class server {
 
             // Continue to read the file
             while (bytesSent+startByteCount < totalBytesCount) {
-                outStream.flush();
                 bytesSent += buffStream.read(byteArr);
                 outStream.write(byteArr);
+                outStream.flush();
             }
 
         } catch (IOException e) {
@@ -176,10 +176,10 @@ public class server {
             e.printStackTrace();
             System.out.println(e.getMessage());
 
-            if (bytesSent+startByteCount < totalBytesCount) {
-                System.out.println("Resuming download...");
-                readFileAndSendBytesToClient(buffStream, bytesSent, totalBytesCount);
-            }
+//            if (bytesSent+startByteCount < totalBytesCount) {
+//                System.out.println("Resuming download...");
+//                readFileAndSendBytesToClient(buffStream, bytesSent, totalBytesCount);
+//            }
 
         }
     }

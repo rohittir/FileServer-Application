@@ -121,11 +121,8 @@ public class client {
 
             // Create file output stream to write the data into file
             FileOutputStream fos = null;
-            if (bytesRead == 0) {
-                 fos = new FileOutputStream(clientFile);
-            } else {
-                fos = new FileOutputStream(clientFile, true);
-            }
+
+            fos = new FileOutputStream(clientFile);
 
             BufferedOutputStream bos = new BufferedOutputStream(fos);
 
@@ -149,10 +146,10 @@ public class client {
             //EXCEPTION
             System.out.println(e.getMessage());
             e.printStackTrace();
-            if (bytesRead < bytesToDownload) {
-                System.out.println("Resuming download ");
-                readServerBytesAndWriteFile(clientFile, bytesRead, bytesToDownload);
-            }
+//            if (bytesRead < bytesToDownload) {
+//                System.out.println("Resuming download ");
+//                readServerBytesAndWriteFile(clientFile, bytesRead, bytesToDownload);
+//            }
 
         }
     }
