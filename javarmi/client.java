@@ -23,36 +23,62 @@ public class client {
     // Client Method of downloading a file from server
     private void downloadFile(String serverFile, String clientFile) {
         try {
+            // create file object
             File file = new File(clientFile);
-            FileOutputStream fos = new FileOutputStream(file);
-            BufferedOutputStream bos = new BufferedOutputStream(fos);
-
             int bytesDownloaded = 0;
+
+            // get the server file data size
             int bytesToDownload = this.serverObj.getFileSize(serverFile);
 
             if (bytesToDownload > 0) {
 
-                byte[] bytesArr = new byte[1024];
-                bytesDownloaded = this.serverObj.downloadFile(serverFile, bytesArr, bytesDownloaded);
-                bos.write(bytesArr, 0, bytesArr.length);
-                bos.flush();
+                // check if the file already downloaded on client
+                if (file.exists()) {
+                    bytesDownloaded = (int)file.length();
+                }
 
-                while (bytesDownloaded > 0 && bytesDownloaded < bytesToDownload) {
-                    bytesArr = new byte[1024];
-                    bytesDownloaded = this.serverObj.downloadFile(serverFile, bytesArr, bytesDownloaded);
-                    bos.write(bytesArr);
-                    bos.flush();
+                FileOutputStream fos = null;
 
-                    float perc = (float) bytesDownloaded / (float) bytesToDownload * (float) 100.0;
+                // check if there was any previous inturrupted dowload. If so, prepare for resume download
+                if (bytesDownloaded > 0 && bytesDownloaded < bytesToDownload) {
+                    fos = new FileOutputStream(file, true);
+                } else {
+                    fos = new FileOutputStream(file, false);
+                }
+
+                BufferedOutputStream bos = new BufferedOutputStream(fos);
+
+                // Start donloading file...
+                byte[] bytesArr = this.serverObj.downloadFile(serverFile, bytesDownloaded);
+
+                while (bytesArr != null && bytesArr.length > 0) {
+
+                    // write to file on client
+                    bos.write(bytesArr, 0, bytesArr.length);
+                    bos.flush();  // flush all the data written to file
+
+                    bytesDownloaded += bytesArr.length;
+
+                    // continue downloading file...
+                    bytesArr = this.serverObj.downloadFile(serverFile, bytesDownloaded);
+
+                    // show percentage of download
+                    float perc = (float) bytesDownloaded / (float)bytesToDownload * (float) 100.0;
                     System.out.print("\r");
                     System.out.print("downloading ... " + ((int) perc) + "%");
                 }
 
+                // show the success message
                 if (bytesDownloaded > 0) {
                     System.out.println("\nFile downloaded");
                 } else {
                     System.out.println("\nError occured while downloading the file");
                 }
+
+                // close the file
+                bos.close();
+                fos.close();
+
             } else {
                 System.out.println("File not found..");
             }
@@ -63,6 +89,7 @@ public class client {
             e.printStackTrace();
         }
     }
+
 
     private void uploadFile(String serverFile, String clientFile) {
         try {

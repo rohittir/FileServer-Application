@@ -95,6 +95,9 @@ public class server extends UnicastRemoteObject implements serverInterface  {
 
     }
 
+    /**
+     * Returns the length of bytes of the file, if exixst, else returns -1
+     */
     public int getFileSize(String filePath) throws RemoteException {
         int fileSize = -1;
         try {
@@ -121,73 +124,84 @@ public class server extends UnicastRemoteObject implements serverInterface  {
         return fileSize;
     }
 
-    public int downloadFile(String filePath, byte[] bytesArr, int bytesDownloaded) throws RemoteException {
+    /**
+     * returns bytes of data of the file if exists. else returns null
+     */
+    public byte[] downloadFile(String filePath, int bytesDownloaded) throws RemoteException {
 
-                int retVal = -1;
-                try {
+        byte[] bytesArr = null;
+        try {
 
-                    Path currentRelativePath = Paths.get("");
-                    String s = currentRelativePath.toAbsolutePath().toString();
+            Path currentRelativePath = Paths.get("");
+            String s = currentRelativePath.toAbsolutePath().toString();
 
-                    if(0 == filePath.indexOf("/") || 0 == filePath.indexOf("\\")) {
-                        filePath = filePath.substring(1);
-                    }
-
-                    filePath = s + "/" + filePath;
-
-                    File file = new File(filePath);
-                    if (file.exists()) {
-
-                        FileInputStream fis = new FileInputStream(file);
-                        BufferedInputStream bis = new BufferedInputStream(fis);
-
-                        int val = bis.read(bytesArr);
-                        if (val > 0) {
-                            bytesDownloaded += val;
-                            retVal = bytesDownloaded;
-                        } else {
-                            System.out.println("Error in downloading file.");
-                        }
-                    }
-                }
-                catch (Exception e) {
-                    System.out.println(e.getMessage());
-                    e.printStackTrace();
-                }
-
-                return retVal;
-
+            if(0 == filePath.indexOf("/") || 0 == filePath.indexOf("\\")) {
+                filePath = filePath.substring(1);
             }
 
-            public boolean uploadFile(String filePath, byte[] bytes, boolean isAppend) throws RemoteException {
+            filePath = s + "/" + filePath;
 
-                try {
+            // Create the file object and check if the file existss
+            File file = new File(filePath);
+            if (file.exists()) {
 
-                    Path currentRelativePath = Paths.get("");
-                    String s = currentRelativePath.toAbsolutePath().toString();
+                FileInputStream fis = new FileInputStream(file);
 
-                    if(0 == filePath.indexOf("/") || 0 == filePath.indexOf("\\")) {
-                        filePath = filePath.substring(1);
-                    }
-
-                    filePath = s + "/" + filePath;
-
-                    File file = new File(filePath);
-                    FileOutputStream fos = new FileOutputStream(file, isAppend);
-
-                    BufferedOutputStream bos = new BufferedOutputStream(fos);
-                    bos.write(bytes, 0, bytes.length);
-                    bos.flush();
-
-                    return true;
-                }
-                catch (Exception e) {
-                    System.out.println(e.getMessage());
-                    e.printStackTrace();
+                // skip the data if already dowloaded
+                if (bytesDownloaded > 0) {
+                    fis.skip(bytesDownloaded);
                 }
 
-                return false;
+                // read the bytes of data
+                bytesArr = new byte[1024];
+                int val = fis.read(bytesArr);
+                if (val <= 0) {
+                    bytesArr = null;
+                    System.out.println("Error in downloading file.");
+                }
+
+                // close the file
+                fis.close();
             }
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+
+        return bytesArr;
+
+    }
+
+    public boolean uploadFile(String filePath, byte[] bytes, boolean isAppend) throws RemoteException {
+
+        try {
+
+            Path currentRelativePath = Paths.get("");
+            String s = currentRelativePath.toAbsolutePath().toString();
+
+            if(0 == filePath.indexOf("/") || 0 == filePath.indexOf("\\")) {
+                filePath = filePath.substring(1);
+            }
+
+            filePath = s + "/" + filePath;
+
+            File file = new File(filePath);
+            FileOutputStream fos = new FileOutputStream(file, isAppend);
+
+            BufferedOutputStream bos = new BufferedOutputStream(fos);
+            bos.write(bytes, 0, bytes.length);
+            bos.flush();
+
+            return true;
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+
+        return false;
+    }
 
     /*
      * Sends the dir information of given path to client

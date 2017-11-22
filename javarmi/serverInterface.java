@@ -7,7 +7,7 @@ public interface serverInterface extends java.rmi.Remote {
 
     public int getFileSize(String filePath) throws RemoteException;
 
-    public int downloadFile(String filePath, byte[] bytesArr, int bytesDownloaded) throws RemoteException;
+    public byte[] downloadFile(String filePath, int bytesDownloaded) throws RemoteException;
 
     public boolean uploadFile(String filePath, byte[] bytes, boolean isAppend) throws RemoteException;
 
