@@ -365,10 +365,14 @@ public class server extends UnicastRemoteObject implements serverInterface  {
     public static void main(String[] args) {
 
         try {
-            server s1 = new server();
-            Naming.rebind("rmi://localhost/FileServer", s1);
-            System.out.println("Server is running on localhost...");
 
+            if (args.length >= 1 && 0 == args[0].compareTo("start")) {
+                server s1 = new server();
+                Naming.rebind("rmi://localhost/FileServer", s1);
+                System.out.println("Server is running on localhost...");
+            } else {
+                System.out.println("Please use the right command to start the server. use server start");
+            }
         }
         catch (Exception e) {
             System.out.println("FileServer Server has a problem.");
