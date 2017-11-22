@@ -205,16 +205,17 @@ public class client {
         try {
 
             String server = System.getenv("PA2_SERVER");
-            String[] parts = server.split(":");
-            if (parts.length > 0 && parts[0] != null && !parts[0].isEmpty()) {
+            if (server != null && !server.isEmpty()) {
+                String[] parts = server.split(":");
+                if (parts.length > 0 && parts[0] != null && !parts[0].isEmpty()) {
+                    String name = "rmi://" + parts[0] + "/FileServer";
+                    serverInterface s1 = (serverInterface)Naming.lookup(name);
 
-                String name = "rmi://" + parts[0] + "/FileServer";
-                serverInterface s1 = (serverInterface)Naming.lookup(name);
-
-                if (s1 != null) {
-                    // System.out.println("Server object is found in the registry");
-                    client c1 = new client(s1);
-                    c1.sendCommandToServer(args);
+                    if (s1 != null) {
+                        // System.out.println("Server object is found in the registry");
+                        client c1 = new client(s1);
+                        c1.sendCommandToServer(args);
+                    }
                 }
             } else {
                 System.out.println("Please set the environment variable PA2_SERVER before running the client. e.g. export PA2_SERVER=\"localhost\"");
