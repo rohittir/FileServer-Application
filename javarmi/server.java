@@ -33,8 +33,8 @@ public class server extends UnicastRemoteObject implements serverInterface  {
         return "Problem while shutting down the server";
     }
 
-    /*
-     *
+    /**
+     * Processess common client requests like dir, mkdir, rmdir, rm etc.
      */
     public String processCommand(String command) throws RemoteException {
 
@@ -172,6 +172,9 @@ public class server extends UnicastRemoteObject implements serverInterface  {
 
     }
 
+    /**
+     * Recieves the data bytes from client and saves into a file
+     */
     public boolean uploadFile(String filePath, byte[] bytes, boolean isAppend) throws RemoteException {
 
         try {
@@ -185,14 +188,23 @@ public class server extends UnicastRemoteObject implements serverInterface  {
 
             filePath = s + "/" + filePath;
 
+            // Create file object
             File file = new File(filePath);
-            FileOutputStream fos = new FileOutputStream(file, isAppend);
 
-            BufferedOutputStream bos = new BufferedOutputStream(fos);
-            bos.write(bytes, 0, bytes.length);
-            bos.flush();
+            if (file.exists()) {
+                // Open a file in append/create mode
+                FileOutputStream fos = new FileOutputStream(file, isAppend);
+                BufferedOutputStream bos = new BufferedOutputStream(fos);
 
-            return true;
+                // write data to the file
+                bos.write(bytes, 0, bytes.length);
+                bos.flush();
+
+                // close the file
+                fos.close();
+
+                return true;
+            }
         }
         catch (Exception e) {
             System.out.println(e.getMessage());

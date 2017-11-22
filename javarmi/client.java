@@ -20,7 +20,9 @@ public class client {
         this.serverObj = obj;
     }
 
-    // Client Method of downloading a file from server
+    /**
+     * Client Method of downloading a file from server
+     */
     private void downloadFile(String serverFile, String clientFile) {
         try {
             // create file object
@@ -77,7 +79,6 @@ public class client {
                 }
 
                 // close the file
-                bos.close();
                 fos.close();
 
             } else {
@@ -91,27 +92,41 @@ public class client {
         }
     }
 
-
+    /**
+     * Client method to upload a file to server
+     */
     private void uploadFile(String serverFile, String clientFile) {
         try {
+
+            // check the file on server if available and get its data size
+            int serverFileSize = this.serverObj.getFileSize(serverFile);
 
             File file = new File(clientFile);
             if (file.exists()) {
 
                 FileInputStream fis = new FileInputStream(file);
-                BufferedInputStream buffStream = new BufferedInputStream(fis);
                 int fileLength = (int)file.length();
+                int bytesread = 0;
+
+                boolean isAppend = false;
+                if (serverFileSize > 0 && serverFileSize < fileLength) {
+                    fis.skip(serverFileSize);
+                    isAppend = true;
+                    bytesread = serverFileSize;
+                }
 
                 // Create the byte array with appropriate size
                 byte[] byteArr = new byte[1024];
-
-                // Send file data to client
-                int bytesread = buffStream.read(byteArr, 0, byteArr.length);
-                boolean success = this.serverObj.uploadFile(serverFile, byteArr, false);
+                boolean success = true;
 
                 while(success && bytesread < fileLength) {
-                    bytesread += buffStream.read(byteArr);
-                    success = this.serverObj.uploadFile(serverFile, byteArr, true);
+
+                    // Read the data from file
+                    bytesread += fis.read(byteArr);
+
+                    // Send file data to client
+                    success = this.serverObj.uploadFile(serverFile, byteArr, isAppend);
+                    isAppend = true;
 
                     float perc = (float) bytesread / (float) fileLength * (float) 100.0;
                     System.out.print("\r");
@@ -122,6 +137,9 @@ public class client {
                 } else {
                     System.out.println("\nError occured while uploading the file");
                 }
+
+                // close the file
+                fis.close();
 
             } else {
                 System.out.println("File not found..");
