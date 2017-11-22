@@ -30,7 +30,7 @@ public class client {
             int bytesDownloaded = 0;
 
             // get the server file data size
-            int bytesToDownload = this.serverObj.getFileSize(serverFile);
+            int bytesToDownload = this.serverObj.getServerFileLength(serverFile);
 
             if (bytesToDownload > 0) {
 
@@ -66,9 +66,9 @@ public class client {
                     bytesArr = this.serverObj.downloadFile(serverFile, bytesDownloaded);
 
                     // show percentage of download
-                    float perc = (float) bytesDownloaded / (float)bytesToDownload * (float) 100.0;
+                    float progress = (float) bytesDownloaded / (float)bytesToDownload * (float) 100.0;
                     System.out.print("\r");
-                    System.out.print("downloading ... " + ((int) perc) + "%");
+                    System.out.print("downloading ... " + ((int) progress) + "%");
                 }
 
                 // show the success message
@@ -99,7 +99,7 @@ public class client {
         try {
 
             // check the file on server if available and get its data size
-            int serverFileSize = this.serverObj.getFileSize(serverFile);
+            int serverFileSize = this.serverObj.getServerFileLength(serverFile);
 
             File file = new File(clientFile);
             if (file.exists()) {
@@ -128,9 +128,9 @@ public class client {
                     success = this.serverObj.uploadFile(serverFile, byteArr, isAppend);
                     isAppend = true;
 
-                    float perc = (float) bytesread / (float) fileLength * (float) 100.0;
+                    float progress = (float) bytesread / (float) fileLength * (float) 100.0;
                     System.out.print("\r");
-                    System.out.print("uploading ... " + ((int) perc) + "%");
+                    System.out.print("uploading ... " + ((int) progress) + "%");
                 }
                 if (success) {
                     System.out.println("\nSuccessfully uploaded the file");

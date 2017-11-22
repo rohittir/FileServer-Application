@@ -8,7 +8,7 @@ import java.rmi.server.UnicastRemoteObject;
 
 
 /*
- * Class - Server Class
+ * Class - RMI Server Class
  * @author Rohit Tirmanwar (G01030038)
  *
  */
@@ -22,6 +22,9 @@ public class server extends UnicastRemoteObject implements serverInterface  {
 
     }
 
+    /**
+     * Stops the RMI server
+     */
     private String shutDown() {
         try {
             Naming.unbind("rmi://localhost/FileServer");
@@ -30,7 +33,7 @@ public class server extends UnicastRemoteObject implements serverInterface  {
             e.printStackTrace();
         }
 
-        return "Problem while shutting down the server";
+        return "Error 205: Error while shutting down the server";
     }
 
     /**
@@ -38,7 +41,7 @@ public class server extends UnicastRemoteObject implements serverInterface  {
      */
     public String processCommand(String command) throws RemoteException {
 
-        String retMessage = "INVALID COMMAND FROM CLIENT! Please try again with valid command...";
+        String retMessage = "Error 400: INVALID COMMAND FROM CLIENT! Please try again with valid command...";
         try {
 
             String[] commands = command.split(":");
@@ -79,7 +82,7 @@ public class server extends UnicastRemoteObject implements serverInterface  {
                     break;
                 }
                 default: {
-                    System.out.println("INVALID COMMAND FROM CLIENT! Please try again with valid command...");
+                    System.out.println("Error 400: INVALID COMMAND FROM CLIENT! Please try again with valid command...");
                     break;
                 }
             }
@@ -96,9 +99,9 @@ public class server extends UnicastRemoteObject implements serverInterface  {
     }
 
     /**
-     * Returns the length of bytes of the file, if exixst, else returns -1
+     * Returns the length of bytes of the file, if exists, else returns -1
      */
-    public int getFileSize(String filePath) throws RemoteException {
+    public int getServerFileLength(String filePath) throws RemoteException {
         int fileSize = -1;
         try {
 
@@ -191,20 +194,19 @@ public class server extends UnicastRemoteObject implements serverInterface  {
             // Create file object
             File file = new File(filePath);
 
-            if (file.exists()) {
-                // Open a file in append/create mode
-                FileOutputStream fos = new FileOutputStream(file, isAppend);
-                BufferedOutputStream bos = new BufferedOutputStream(fos);
+            // Open a file in append/create mode
+            FileOutputStream fos = new FileOutputStream(file, isAppend);
+            BufferedOutputStream bos = new BufferedOutputStream(fos);
 
-                // write data to the file
-                bos.write(bytes, 0, bytes.length);
-                bos.flush();
+            // write data to the file
+            bos.write(bytes, 0, bytes.length);
+            bos.flush();
 
-                // close the file
-                fos.close();
+            // close the file
+            fos.close();
 
-                return true;
-            }
+            return true;
+
         }
         catch (Exception e) {
             System.out.println(e.getMessage());
@@ -365,7 +367,7 @@ public class server extends UnicastRemoteObject implements serverInterface  {
         try {
             server s1 = new server();
             Naming.rebind("rmi://localhost/FileServer", s1);
-            System.out.println("FileServer Server is running on localhost...");
+            System.out.println("Server is running on localhost...");
 
         }
         catch (Exception e) {
