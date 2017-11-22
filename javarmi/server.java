@@ -22,6 +22,17 @@ public class server extends UnicastRemoteObject implements serverInterface  {
 
     }
 
+    private String shutDown() {
+        try {
+            Naming.unbind("rmi://localhost/FileServer");
+            return "Stopped the server successfully";
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return "Problem while shutting down the server";
+    }
+
     /*
      *
      */
@@ -46,7 +57,7 @@ public class server extends UnicastRemoteObject implements serverInterface  {
                     break;
                 }
                 case "shutdown": {
-
+                    retMessage = this.shutDown();
                     break;
                 }
                 case "mkdir": {
@@ -112,71 +123,71 @@ public class server extends UnicastRemoteObject implements serverInterface  {
 
     public int downloadFile(String filePath, byte[] bytesArr, int bytesDownloaded) throws RemoteException {
 
-        int retVal = -1;
-        try {
+                int retVal = -1;
+                try {
 
-            Path currentRelativePath = Paths.get("");
-            String s = currentRelativePath.toAbsolutePath().toString();
+                    Path currentRelativePath = Paths.get("");
+                    String s = currentRelativePath.toAbsolutePath().toString();
 
-            if(0 == filePath.indexOf("/") || 0 == filePath.indexOf("\\")) {
-                filePath = filePath.substring(1);
-            }
+                    if(0 == filePath.indexOf("/") || 0 == filePath.indexOf("\\")) {
+                        filePath = filePath.substring(1);
+                    }
 
-            filePath = s + "/" + filePath;
+                    filePath = s + "/" + filePath;
 
-            File file = new File(filePath);
-            if (file.exists()) {
+                    File file = new File(filePath);
+                    if (file.exists()) {
 
-                FileInputStream fis = new FileInputStream(file);
-                BufferedInputStream bis = new BufferedInputStream(fis);
+                        FileInputStream fis = new FileInputStream(file);
+                        BufferedInputStream bis = new BufferedInputStream(fis);
 
-                int val = bis.read(bytesArr);
-                if (val > 0) {
-                    bytesDownloaded += val;
-                    retVal = bytesDownloaded;
-                } else {
-                    System.out.println("Error in downloading file.");
+                        int val = bis.read(bytesArr);
+                        if (val > 0) {
+                            bytesDownloaded += val;
+                            retVal = bytesDownloaded;
+                        } else {
+                            System.out.println("Error in downloading file.");
+                        }
+                    }
                 }
-            }
-        }
-        catch (Exception e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        }
+                catch (Exception e) {
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
+                }
 
-        return retVal;
+                return retVal;
 
-    }
-
-    public boolean uploadFile(String filePath, byte[] bytes, boolean isAppend) throws RemoteException {
-
-        try {
-
-            Path currentRelativePath = Paths.get("");
-            String s = currentRelativePath.toAbsolutePath().toString();
-
-            if(0 == filePath.indexOf("/") || 0 == filePath.indexOf("\\")) {
-                filePath = filePath.substring(1);
             }
 
-            filePath = s + "/" + filePath;
+            public boolean uploadFile(String filePath, byte[] bytes, boolean isAppend) throws RemoteException {
 
-            File file = new File(filePath);
-            FileOutputStream fos = new FileOutputStream(file, isAppend);
+                try {
 
-            BufferedOutputStream bos = new BufferedOutputStream(fos);
-            bos.write(bytes, 0, bytes.length);
-            bos.flush();
+                    Path currentRelativePath = Paths.get("");
+                    String s = currentRelativePath.toAbsolutePath().toString();
 
-            return true;
-        }
-        catch (Exception e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        }
+                    if(0 == filePath.indexOf("/") || 0 == filePath.indexOf("\\")) {
+                        filePath = filePath.substring(1);
+                    }
 
-        return false;
-    }
+                    filePath = s + "/" + filePath;
+
+                    File file = new File(filePath);
+                    FileOutputStream fos = new FileOutputStream(file, isAppend);
+
+                    BufferedOutputStream bos = new BufferedOutputStream(fos);
+                    bos.write(bytes, 0, bytes.length);
+                    bos.flush();
+
+                    return true;
+                }
+                catch (Exception e) {
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
+                }
+
+                return false;
+            }
 
     /*
      * Sends the dir information of given path to client
@@ -329,7 +340,7 @@ public class server extends UnicastRemoteObject implements serverInterface  {
         try {
             server s1 = new server();
             Naming.rebind("rmi://localhost/FileServer", s1);
-            System.out.println("FileServer Server is ready.");
+            System.out.println("FileServer Server is running on localhost...");
 
         }
         catch (Exception e) {

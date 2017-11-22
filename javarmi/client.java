@@ -3,7 +3,7 @@ import java.io.*;
 import java.rmi.*;
 
 /**
- * This class implements java socket com.company.client
+ * This class implements java client
  * @author Rohit Tirmanwar (G01030038)
  *
  */
@@ -20,6 +20,7 @@ public class client {
         this.serverObj = obj;
     }
 
+    // Client Method of downloading a file from server
     private void downloadFile(String serverFile, String clientFile) {
         try {
             File file = new File(clientFile);
@@ -114,11 +115,12 @@ public class client {
                 case "dir":
                 case "mkdir":
                 case "rmdir":
-                case "rm":{
+                case "rm":
+                case "shutdown": {
                     if (commands.length > 1) {
                         String reply = this.serverObj.processCommand(commands[0] + ":" + commands[1]);
                         System.out.println(reply);
-                    } else if (0 == commands[0].compareTo("dir")) {
+                    } else if (0 == commands[0].compareTo("dir") || 0 == commands[0].compareTo("shutdown")) {
                         if (commands.length == 1) {
                             String reply = this.serverObj.processCommand(commands[0]+":");
                             System.out.println(reply);
@@ -156,13 +158,20 @@ public class client {
 
         try {
 
-            String name = "rmi://localhost/FileServer";
-            serverInterface s1 = (serverInterface)Naming.lookup(name);
+            String server = System.getenv("PA2_SERVER");
+            String[] parts = server.split(":");
+            if (parts.length > 0 && parts[0] != null && !parts[0].isEmpty()) {
 
-            if (s1 != null) {
-                System.out.println("Server object is found in the registry");
-                client c1 = new client(s1);
-                c1.sendCommandToServer(args);
+                String name = "rmi://" + parts[0] + "/FileServer";
+                serverInterface s1 = (serverInterface)Naming.lookup(name);
+
+                if (s1 != null) {
+                    // System.out.println("Server object is found in the registry");
+                    client c1 = new client(s1);
+                    c1.sendCommandToServer(args);
+                }
+            } else {
+                System.out.println("Please set the environment variable PA2_SERVER before running the client. e.g. export PA2_SERVER=\"localhost\"");
             }
 
         } catch (Exception e) {
