@@ -157,7 +157,6 @@ public class server extends UnicastRemoteObject implements serverInterface  {
                 int val = fis.read(bytesArr);
                 if (val <= 0) {
                     bytesArr = null;
-                    System.out.println("Error in downloading file.");
                 }
 
                 // close the file

@@ -43,6 +43,7 @@ public class client {
                 if (bytesDownloaded > 0 && bytesDownloaded < bytesToDownload) {
                     fos = new FileOutputStream(file, true);
                 } else {
+                    bytesDownloaded = 0;
                     fos = new FileOutputStream(file, false);
                 }
 
